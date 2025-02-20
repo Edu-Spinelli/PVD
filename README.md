@@ -36,7 +36,7 @@ Isso instalará todas as bibliotecas listadas no arquivo `requirements.txt`.
 Agora, vá até a pasta onde o arquivo `0_Apresentacao.py` está localizado:
 
 ```bash
-cd pages  # Se necessário, ajuste o caminho para onde o arquivo está
+cd PVD  # Se necessário, mas o arquivo, quando der git clone, vai estar dentro ja da pasta PVD
 ```
 
 ## **5️⃣ Rodar o Projeto com o Streamlit**
