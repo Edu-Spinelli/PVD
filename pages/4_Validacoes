@@ -1,0 +1,161 @@
+import streamlit as st
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy.stats import ttest_ind
+from sklearn.linear_model import LogisticRegression
+import numpy as np
+
+# Configuração da página
+st.title("Validação das Hipóteses")
+
+# Caminho para os dados tratados
+DATA_PATH = "data/dados_tratados.csv"
+
+# Carregar os dados
+try:
+    data = pd.read_csv(DATA_PATH)
+    st.success("Dados carregados com sucesso!")
+except FileNotFoundError:
+    st.error(f"Erro: O arquivo {DATA_PATH} não foi encontrado. Certifique-se de rodar o pré-processamento antes.")
+    st.stop()
+
+# -----------------------------
+# Hipótese 1: Tabagismo e Colesterol HDL
+# -----------------------------
+st.header("4.1 - Tabagismo e Colesterol HDL")
+
+st.write("""
+**Hipótese:** Fumantes possuem menores níveis de colesterol HDL.
+
+**Gráficos Utilizados:** Strip Plot e Histograma
+""")
+
+fig, ax = plt.subplots(1, 2, figsize=(12, 5))
+
+# Stripplot
+sns.stripplot(x="Smoking", y="CholesterolHDL", data=data, ax=ax[0])
+ax[0].set_title("Relação entre Fumo e Colesterol HDL")
+ax[0].set_xlabel("Fumante (0 = Não, 1 = Sim)")
+ax[0].set_ylabel("Nível de Colesterol HDL")
+
+# Histograma
+sns.histplot(data, x="CholesterolHDL", hue="Smoking", kde=True, bins=20, ax=ax[1])
+ax[1].set_title("Distribuição do Colesterol HDL por Tabagismo")
+
+st.pyplot(fig)
+
+# Análise
+st.subheader("Análise dos Gráficos")
+st.write("""
+Se a hipótese for verdadeira, observamos que os fumantes possuem menores valores de HDL.
+Se os gráficos não mostram uma diferença clara, a hipótese pode ser refutada.
+""")
+
+# -----------------------------
+# Hipótese 2: Histórico Familiar e Diagnóstico
+# -----------------------------
+st.header("4.2 - Histórico Familiar e Diagnóstico de Alzheimer")
+
+st.write("""
+**Hipótese:** Pacientes com histórico familiar de Alzheimer possuem maior probabilidade de diagnóstico positivo.
+
+**Gráficos Utilizados:** Gráfico de Barras e Tabela de Frequências
+""")
+
+fig, ax = plt.subplots(figsize=(6, 4))
+sns.countplot(x="FamilyHistoryAlzheimers", hue="Diagnosis", data=data, ax=ax)
+ax.set_title("Histórico Familiar vs. Diagnóstico")
+ax.set_xlabel("Histórico Familiar (0 = Não, 1 = Sim)")
+ax.set_ylabel("Contagem")
+
+st.pyplot(fig)
+
+st.subheader("Análise dos Gráficos")
+st.write("""
+Se a hipótese for verdadeira, devemos observar uma proporção maior de diagnósticos positivos em pacientes com histórico familiar.
+""")
+
+# -----------------------------
+# Hipótese 3: Qualidade da Dieta e MMSE
+# -----------------------------
+st.header("4.3 - Qualidade da Dieta e MMSE")
+
+st.write("""
+**Hipótese:** Uma melhor qualidade da dieta está associada a escores mais altos no MMSE.
+
+**Gráficos Utilizados:** Gráfico de Dispersão e Regressão Linear
+""")
+
+fig, ax = plt.subplots(figsize=(6, 4))
+sns.scatterplot(x="DietQuality", y="MMSE", data=data, ax=ax)
+ax.set_title("Qualidade da Dieta vs. MMSE")
+
+st.pyplot(fig)
+
+# Regressão Linear
+X = data["DietQuality"].values.reshape(-1, 1)
+y = data["MMSE"].values
+
+model = LogisticRegression()
+model.fit(X, y)
+coef = model.coef_[0][0]
+
+st.subheader("Análise dos Gráficos")
+st.write(f"""
+Se a hipótese for verdadeira, observamos uma correlação positiva.
+Coeficiente da Regressão Linear: {coef:.4f}
+""")
+
+# -----------------------------
+# Hipótese 4: Atividade Física e Sintomas Cognitivos
+# -----------------------------
+st.header("4.4 - Atividade Física e Sintomas Cognitivos")
+
+st.write("""
+**Hipótese:** Pacientes mais ativos apresentam menos sintomas cognitivos.
+
+**Gráficos Utilizados:** Boxplot
+""")
+
+fig, ax = plt.subplots(figsize=(6, 4))
+sns.boxplot(x="Forgetfulness", y="PhysicalActivity", data=data, ax=ax)
+ax.set_title("Atividade Física vs. Esquecimento")
+
+st.pyplot(fig)
+
+# Teste T
+grupo_ativo = data[data["Forgetfulness"] == 0]["PhysicalActivity"]
+grupo_sintomas = data[data["Forgetfulness"] == 1]["PhysicalActivity"]
+t_stat, p_value = ttest_ind(grupo_ativo, grupo_sintomas)
+
+st.subheader("Análise dos Gráficos")
+st.write(f"""
+Se a hipótese for verdadeira, pacientes sem sintomas terão valores médios de atividade física maiores.
+p-valor do Teste T: {p_value:.4f} (valores < 0.05 indicam relação estatística)
+""")
+
+# -----------------------------
+# Hipótese 5: Atividade Física e Depressão
+# -----------------------------
+st.header("4.5 - Atividade Física e Depressão")
+
+st.write("""
+**Hipótese:** Pacientes com depressão praticam menos atividade física.
+
+**Gráficos Utilizados:** Gráfico de Violino e Boxplot
+""")
+
+fig, ax = plt.subplots(figsize=(6, 4))
+sns.violinplot(x="Depression", y="PhysicalActivity", data=data, ax=ax)
+ax.set_title("Atividade Física e Depressão")
+
+st.pyplot(fig)
+
+st.subheader("Análise dos Gráficos")
+st.write("""
+Se a hipótese for verdadeira, a distribuição da atividade física será menor para pacientes com depressão.
+""")
+
+st.markdown("---")
+st.write("Essas análises permitem avaliar as hipóteses por meio de gráficos e técnicas de mineração de dados.")
